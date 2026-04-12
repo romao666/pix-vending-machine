@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry Bomb Handmade - Vending Machine</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cereja: '#C8102E',
+                        'deep-pink': '#FF1493',
+                        brutalista: '#1A1A1A',
+                    },
+                    fontFamily: {
+                        display: ['Shrikhand', 'cursive'],
+                        body: ['Poppins', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        brutal: '4px 4px 0px rgba(26, 26, 26, 1)',
+                        'brutal-sm': '2px 2px 0px rgba(26, 26, 26, 1)',
+                    },
+                    borderWidth: {
+                        '3': '3px',
+                        '4': '4px',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Removendo efeitos blur padrão para sombras brutais */
+        .brutal-shadow {
+            box-shadow: 4px 4px 0px rgba(26, 26, 26, 1);
+        }
+
+        .brutal-shadow-sm {
+            box-shadow: 2px 2px 0px rgba(26, 26, 26, 1);
+        }
+
+        /* Transição para feedback tátil */
+        .btn-feedback:active {
+            transform: scale(0.95);
+        }
+
+        /* Hover effect para cards */
+        .product-card:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(26, 26, 26, 1);
+        }
+
+        .product-card {
+            transition: all 0.1s ease-out;
+        }
+
+        /* Estoque zerado */
+        .out-of-stock {
+            opacity: 0.5;
+            filter: grayscale(50%);
+        }
+    </style>
+</head>
+<body class="bg-white font-body">
+    <!-- HEADER -->
+    <header class="bg-cereja py-6 px-4 border-b-4 border-brutalista">
+        <div class="max-w-md mx-auto text-center">
+            <h1 class="font-display text-4xl text-white drop-shadow-lg">
+                🍒 Cherry Bomb
+            </h1>
+            <p class="font-body text-sm text-white mt-1">Mimos Autênticos</p>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-md mx-auto px-4 py-6 pb-32">
+        <!-- Grid de Produtos (2 colunas) -->
+        <div class="grid grid-cols-2 gap-4">
+            <!-- CARD PRODUTO 1 -->
+            <div class="product-card bg-white border-3 border-brutalista brutal-shadow p-4">
+                <!-- Imagem Placeholder -->
+                <div class="bg-gray-200 border-2 border-brutalista w-full aspect-square mb-3 flex items-center justify-center">
+                    <span class="text-gray-400 text-2xl">📦</span>
+                </div>
+
+                <!-- Badge de Localização -->
+                <div class="bg-brutalista text-white text-xs font-bold px-2 py-1 mb-2 border-2 border-brutalista w-fit">
+                    A1
+                </div>
+
+                <!-- Nome do Produto -->
+                <h3 class="font-display text-lg text-brutalista mb-1">Colar</h3>
+
+                <!-- Preço -->
+                <p class="text-deep-pink font-bold text-sm mb-3">R$ 15,00</p>
+
+                <!-- Controles de Quantidade -->
+                <div class="flex items-center gap-2 mb-3 border-2 border-brutalista p-1">
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100">-</button>
+                    <span class="flex-1 text-center text-sm font-bold">1</span>
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100">+</button>
+                </div>
+
+                <!-- Botão Adicionar -->
+                <button class="btn-feedback w-full bg-deep-pink text-white font-bold py-2 border-2 border-brutalista brutal-shadow-sm hover:bg-opacity-90 active:shadow-none">
+                    Adicionar
+                </button>
+            </div>
+
+            <!-- CARD PRODUTO 2 -->
+            <div class="product-card bg-white border-3 border-brutalista brutal-shadow p-4">
+                <div class="bg-gray-200 border-2 border-brutalista w-full aspect-square mb-3 flex items-center justify-center">
+                    <span class="text-gray-400 text-2xl">📦</span>
+                </div>
+
+                <div class="bg-brutalista text-white text-xs font-bold px-2 py-1 mb-2 border-2 border-brutalista w-fit">
+                    A2
+                </div>
+
+                <h3 class="font-display text-lg text-brutalista mb-1">Pulseira</h3>
+                <p class="text-deep-pink font-bold text-sm mb-3">R$ 12,00</p>
+
+                <div class="flex items-center gap-2 mb-3 border-2 border-brutalista p-1">
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100">-</button>
+                    <span class="flex-1 text-center text-sm font-bold">1</span>
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100">+</button>
+                </div>
+
+                <button class="btn-feedback w-full bg-deep-pink text-white font-bold py-2 border-2 border-brutalista brutal-shadow-sm hover:bg-opacity-90 active:shadow-none">
+                    Adicionar
+                </button>
+            </div>
+
+            <!-- CARD PRODUTO 3 (SEM ESTOQUE) -->
+            <div class="product-card bg-white border-3 border-brutalista brutal-shadow p-4 out-of-stock">
+                <div class="bg-gray-200 border-2 border-brutalista w-full aspect-square mb-3 flex items-center justify-center">
+                    <span class="text-gray-400 text-2xl">📦</span>
+                </div>
+
+                <div class="bg-brutalista text-white text-xs font-bold px-2 py-1 mb-2 border-2 border-brutalista w-fit">
+                    B1
+                </div>
+
+                <h3 class="font-display text-lg text-brutalista mb-1">Anel</h3>
+                <p class="text-deep-pink font-bold text-sm mb-3">R$ 10,00</p>
+
+                <div class="flex items-center gap-2 mb-3 border-2 border-brutalista p-1">
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100 disabled:opacity-50 cursor-not-allowed" disabled>-</button>
+                    <span class="flex-1 text-center text-sm font-bold">0</span>
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100 disabled:opacity-50 cursor-not-allowed" disabled>+</button>
+                </div>
+
+                <button class="w-full bg-gray-300 text-gray-600 font-bold py-2 border-2 border-brutalista cursor-not-allowed" disabled>
+                    Esgotado
+                </button>
+            </div>
+
+            <!-- CARD PRODUTO 4 -->
+            <div class="product-card bg-white border-3 border-brutalista brutal-shadow p-4">
+                <div class="bg-gray-200 border-2 border-brutalista w-full aspect-square mb-3 flex items-center justify-center">
+                    <span class="text-gray-400 text-2xl">📦</span>
+                </div>
+
+                <div class="bg-brutalista text-white text-xs font-bold px-2 py-1 mb-2 border-2 border-brutalista w-fit">
+                    B2
+                </div>
+
+                <h3 class="font-display text-lg text-brutalista mb-1">Brinco</h3>
+                <p class="text-deep-pink font-bold text-sm mb-3">R$ 8,00</p>
+
+                <div class="flex items-center gap-2 mb-3 border-2 border-brutalista p-1">
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100">-</button>
+                    <span class="flex-1 text-center text-sm font-bold">1</span>
+                    <button class="btn-feedback w-6 h-6 bg-white border border-brutalista text-brutalista font-bold hover:bg-gray-100">+</button>
+                </div>
+
+                <button class="btn-feedback w-full bg-deep-pink text-white font-bold py-2 border-2 border-brutalista brutal-shadow-sm hover:bg-opacity-90 active:shadow-none">
+                    Adicionar
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- BOTTOM SHEET - SACOLA -->
+    <div id="cartBottomSheet" class="fixed inset-0 z-40 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none">
+    </div>
+
+    <div id="cartSheet" class="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl border-t-2 border-l-2 border-r-2 border-brutalista transform translate-y-full transition-transform duration-300 ease-out max-w-md mx-auto">
+        <!-- Header do Bottom Sheet -->
+        <div class="border-b-2 border-brutalista p-4">
+            <div class="w-12 h-1 bg-brutalista rounded-full mx-auto mb-3"></div>
+            <h2 class="font-display text-2xl text-brutalista">Sua Sacola</h2>
+        </div>
+
+        <!-- Lista de Itens -->
+        <div class="max-h-64 overflow-y-auto p-4 space-y-3">
+            <!-- Item da Sacola 1 -->
+            <div class="flex justify-between items-center p-3 border-2 border-brutalista bg-white">
+                <div class="flex-1">
+                    <p class="font-bold text-brutalista">Colar</p>
+                    <p class="text-xs text-gray-600">Qty: 1</p>
+                </div>
+                <p class="font-bold text-deep-pink text-lg">R$ 15,00</p>
+            </div>
+
+            <!-- Item da Sacola 2 -->
+            <div class="flex justify-between items-center p-3 border-2 border-brutalista bg-white">
+                <div class="flex-1">
+                    <p class="font-bold text-brutalista">Pulseira</p>
+                    <p class="text-xs text-gray-600">Qty: 2</p>
+                </div>
+                <p class="font-bold text-deep-pink text-lg">R$ 24,00</p>
+            </div>
+
+            <!-- Item da Sacola 3 -->
+            <div class="flex justify-between items-center p-3 border-2 border-brutalista bg-white">
+                <div class="flex-1">
+                    <p class="font-bold text-brutalista">Brinco</p>
+                    <p class="text-xs text-gray-600">Qty: 1</p>
+                </div>
+                <p class="font-bold text-deep-pink text-lg">R$ 8,00</p>
+            </div>
+        </div>
+
+        <!-- Resumo Total -->
+        <div class="border-t-2 border-brutalista p-4 bg-white">
+            <div class="flex justify-between items-center mb-4">
+                <p class="font-body font-bold text-brutalista">Total:</p>
+                <p class="font-display text-3xl text-cereja">R$ 47,00</p>
+            </div>
+
+            <!-- Botão Ir para Pagamento -->
+            <button class="btn-feedback w-full bg-deep-pink text-white font-bold py-3 px-4 border-2 border-brutalista brutal-shadow-sm hover:bg-opacity-90 active:shadow-none text-lg">
+                Ir para Pagamento
+            </button>
+
+            <!-- Botão Continuar Comprando -->
+            <button class="btn-feedback w-full mt-2 bg-white text-brutalista font-bold py-2 px-4 border-2 border-brutalista hover:bg-gray-100">
+                Continuar Comprando
+            </button>
+        </div>
+    </div>
+
+    <!-- BARRA FIXA INFERIOR (Sacola) -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-brutalista">
+        <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-600">Subtotal</p>
+                <p class="font-display text-2xl text-cereja">R$ 45,00</p>
+            </div>
+            <button class="btn-feedback bg-cereja text-white font-bold px-6 py-3 border-3 border-brutalista brutal-shadow hover:bg-opacity-90 active:shadow-none">
+                Checkout
+            </button>
+        </div>
+    </footer>
+
+    <!-- MODAL DE PAGAMENTO -->
+    <div id="paymentModal" class="fixed inset-0 z-50 bg-cereja hidden flex items-center justify-center">
+        <!-- Botão Fechar (Canto Superior) -->
+        <button id="closePaymentBtn" class="absolute top-6 right-6 w-10 h-10 bg-white border-2 border-brutalista rounded-full flex items-center justify-center font-bold text-brutalista hover:bg-gray-100 active:scale-95 transition-transform">
+            ✕
+        </button>
+
+        <!-- Container Central -->
+        <div class="max-w-sm w-full px-4">
+            <!-- Título -->
+            <div class="text-center mb-8">
+                <h1 class="font-display text-5xl text-white drop-shadow-lg mb-2">Quase lá! 🍒</h1>
+                <p class="font-body text-white text-lg">Finalize o pagamento via Pix para liberar seu pedido.</p>
+            </div>
+
+            <!-- Card QR Code -->
+            <div class="bg-white border-3 border-brutalista brutal-shadow p-8 mb-6">
+                <!-- QR Code Placeholder -->
+                <div class="bg-gray-100 border-2 border-brutalista aspect-square mb-6 flex items-center justify-center">
+                    <div class="text-center">
+                        <p class="text-4xl mb-2">📱</p>
+                        <p class="text-sm text-gray-600 font-bold">QR Code Pix</p>
+                    </div>
+                </div>
+
+                <!-- Informações de Pagamento -->
+                <div class="mb-6">
+                    <p class="text-xs text-gray-600 font-bold mb-1">Valor Total</p>
+                    <p class="font-display text-3xl text-cereja mb-4">R$ 47,00</p>
+                    
+                    <div class="bg-gray-100 border-2 border-brutalista p-3 mb-4">
+                        <p class="text-xs text-gray-600 font-bold mb-1">Código Pix</p>
+                        <p class="font-mono text-xs text-brutalista break-all font-bold">00020126580014br.gov.bcb.pix0136xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx520400005303986540510.005802BR5913CHERRY BOMB6009SAO PAULO62410503***63041D3D</p>
+                    </div>
+                </div>
+
+                <!-- Botão Copiar Código -->
+                <button class="btn-feedback w-full bg-deep-pink text-white font-bold py-3 border-2 border-brutalista brutal-shadow-sm hover:bg-opacity-90 active:shadow-none mb-3">
+                    Copiar Código Pix
+                </button>
+
+                <!-- Status de Aguardação -->
+                <div class="text-center p-3 bg-yellow-100 border-2 border-brutalista rounded">
+                    <p class="text-sm font-bold text-brutalista">⏳ Aguardando confirmação...</p>
+                </div>
+            </div>
+
+            <!-- Info Adicional -->
+            <div class="text-center text-white text-sm font-body">
+                <p>Sua sacola será liberada assim que confirmarmos o pagamento.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para controlar Bottom Sheet e Modal de Pagamento -->
+    <script>
+        // ============================================
+        // ELEMENTOS DO DOM
+        // ============================================
+        const cartSheet = document.getElementById('cartSheet');
+        const cartBackdrop = document.getElementById('cartBottomSheet');
+        const paymentModal = document.getElementById('paymentModal');
+        
+        const checkoutBtn = document.querySelector('footer button');
+        const paymentBtn = cartSheet.querySelector('button:first-of-type');
+        const continueShoppingBtn = cartSheet.querySelector('button:last-of-type');
+        const closePaymentBtn = document.getElementById('closePaymentBtn');
+
+        // ============================================
+        // FUNÇÃO: Abrir Sacola
+        // ============================================
+        function openCart() {
+            // Animar Bottom Sheet para cima
+            cartSheet.classList.remove('translate-y-full');
+            cartSheet.classList.add('translate-y-0');
+            
+            // Mostrar backdrop
+            cartBackdrop.classList.remove('opacity-0', 'pointer-events-none');
+            cartBackdrop.classList.add('opacity-100');
+            
+            // Bloquear scroll da página
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ============================================
+        // FUNÇÃO: Fechar Sacola
+        // ============================================
+        function closeCart() {
+            // Animar Bottom Sheet para baixo
+            cartSheet.classList.add('translate-y-full');
+            cartSheet.classList.remove('translate-y-0');
+            
+            // Esconder backdrop
+            cartBackdrop.classList.add('opacity-0', 'pointer-events-none');
+            cartBackdrop.classList.remove('opacity-100');
+            
+            // Liberar scroll da página
+            document.body.style.overflow = 'auto';
+        }
+
+        // ============================================
+        // FUNÇÃO: Abrir Modal de Pagamento
+        // ============================================
+        function openPaymentModal() {
+            // Fechar a Sacola
+            closeCart();
+            
+            // Mostrar Modal
+            paymentModal.classList.remove('hidden');
+        }
+
+        // ============================================
+        // FUNÇÃO: Fechar Modal de Pagamento
+        // ============================================
+        function closePaymentModal() {
+            paymentModal.classList.add('hidden');
+        }
+
+        // ============================================
+        // EVENT LISTENERS - SACOLA
+        // ============================================
+        
+        // Botão "Checkout" na barra inferior abre a Sacola
+        checkoutBtn.addEventListener('click', openCart);
+        
+        // Botão "Continuar Comprando" fecha a Sacola
+        continueShoppingBtn.addEventListener('click', closeCart);
+        
+        // Clicar no backdrop fecha a Sacola
+        cartBackdrop.addEventListener('click', closeCart);
+
+        // ============================================
+        // EVENT LISTENERS - PAGAMENTO
+        // ============================================
+        
+        // Botão "Ir para Pagamento" abre o Modal
+        paymentBtn.addEventListener('click', openPaymentModal);
+        
+        // Botão "Fechar" (✕) fecha o Modal
+        closePaymentBtn.addEventListener('click', closePaymentModal);
+    </script>
+</body>
+</html>
