@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cherry Bomb Handmade - Vending Machine</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cereja: '#C8102E',
+                        escuro: '#8B0000',
+                        brutalista: '#1A1A1A',
+                    },
+                    fontFamily: {
+                        display: ['Shrikhand', 'cursive'],
+                        body: ['Poppins', 'sans-serif'],
+                    },
+                    borderWidth: {
+                        '3': '3px',
+                        '4': '4px',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+
+        .brutal-shadow    { box-shadow: 4px 4px 0px #1A1A1A; }
+        .brutal-shadow-sm { box-shadow: 2px 2px 0px #1A1A1A; }
+
+        /* Feedback tátil — APENAS active, nunca hover */
+        .btn-tap:active {
+            transform: scale(0.95);
+            box-shadow: none;
+        }
+
+        /* Card esgotado */
+        .out-of-stock { opacity: 0.45; filter: grayscale(60%); pointer-events: none; }
+
+        /* Seletor de quantidade embutido */
+        .qty-selector {
+            display: none;
+            width: 100%;
+            border: 2px solid #1A1A1A;
+            box-shadow: 2px 2px 0px #1A1A1A;
+        }
+        .qty-selector.visible { display: flex; }
+
+        .qty-btn {
+            flex: 1;
+            height: 2rem;
+            background: #FFFFFF;
+            border: none;
+            border-right: 1px solid #1A1A1A;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #1A1A1A;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qty-btn:last-child { border-right: none; }
+        .qty-btn:active { background: #f0f0f0; }
+
+        .qty-trash { background: #8B0000 !important; color: #FFFFFF !important; font-size: 0.75rem; }
+        .qty-trash:active { background: #6b0000 !important; }
+
+        .qty-value {
+            flex: 1;
+            height: 2rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #1A1A1A;
+            text-align: center;
+            border-right: 1px solid #1A1A1A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+        }
+
+        /* Bottom sheet sem arredondamento */
+        #cartSheet {
+            border-radius: 0;
+            border-top: 4px solid #1A1A1A;
+            border-left: 2px solid #1A1A1A;
+            border-right: 2px solid #1A1A1A;
+        }
+
+        /* Animação bottom sheet */
+        #cartSheet { transition: transform 0.25s ease-out; }
+        #cartBackdrop { transition: opacity 0.25s ease-out; }
+/* Partículas de cereja */
+        .cherry-particle {
+            position: absolute;
+            animation: cherryFall linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes cherryFall {
+            0%   { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }    
+    </style>
+</head>
+<body class="bg-white font-body">
+
+    <!-- ═══════════════════════════════════════
+         HEADER
+    ════════════════════════════════════════ -->
+    <header class="bg-cereja py-4 px-4 border-b-4 border-brutalista">
+        <div class="max-w-md mx-auto flex items-center gap-3">
+            <!-- Logo SVG -->
+            <img src="logo.svg" alt="Cherry Bomb Handmade" class="h-14 w-14 flex-shrink-0">
+            <div class="flex flex-col">
+                <h1 class="font-display text-3xl text-white leading-tight">Cherry Bomb</h1>
+                <p class="font-display text-white text-xs tracking-widest">— HANDMADE —</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════
+         VITRINE — Grid 4 × 5
+    ════════════════════════════════════════ -->
+    <main class="px-2 py-4 pb-24">
+        <div id="productGrid" class="grid grid-cols-4 gap-2">
+            <!-- Cards gerados pelo JS abaixo -->
+        </div>
+    </main>
+
+    <!-- ═══════════════════════════════════════
+         FOOTER — SACOLA FIXA
+    ════════════════════════════════════════ -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t-4 border-brutalista z-30">
+        <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+            <div>
+                <p class="text-xs text-gray-500 font-body">Subtotal</p>
+                <p id="footerSubtotal" class="font-display text-2xl text-cereja">R$ 0,00</p>
+            </div>
+            <button id="checkoutBtn"
+                class="btn-tap bg-escuro text-white font-body font-bold px-5 py-3 border-2 border-brutalista brutal-shadow flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="square" stroke-linejoin="miter" d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
+                </svg>
+                Sacola
+            </button>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════
+         BACKDROP
+    ════════════════════════════════════════ -->
+    <div id="cartBackdrop"
+         class="fixed inset-0 z-40 bg-black bg-opacity-60 opacity-0 pointer-events-none">
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         BOTTOM SHEET — SACOLA
+    ════════════════════════════════════════ -->
+    <div id="cartSheet"
+         class="fixed bottom-0 left-0 right-0 z-50 bg-white translate-y-full max-w-lg mx-auto">
+
+        <!-- Handle + Header -->
+        <div class="border-b-2 border-brutalista px-4 py-3 flex items-center justify-between">
+            <h2 class="font-display text-2xl text-brutalista">Sua Sacola</h2>
+            <div class="flex items-center gap-2">
+                <button id="clearCartBtn"
+                    class="btn-tap bg-escuro text-white font-body font-bold text-xs px-3 py-2 border-2 border-brutalista">
+                    Limpar
+                </button>
+                <button id="closeCartBtn"
+                    class="btn-tap w-9 h-9 border-2 border-brutalista bg-white font-bold text-brutalista flex items-center justify-center">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de itens (dinâmica) -->
+        <div id="cartItemsList" class="max-h-60 overflow-y-auto px-4 py-3 space-y-2">
+            <!-- preenchido pelo JS -->
+        </div>
+
+        <!-- Vazio -->
+        <div id="cartEmpty" class="px-4 py-8 text-center hidden">
+            <p class="font-body text-gray-400 text-sm">Sua sacola está vazia.</p>
+        </div>
+
+        <!-- Rodapé da sacola -->
+        <div class="border-t-2 border-brutalista px-4 py-4 bg-white">
+            <div class="flex justify-between items-center mb-3">
+                <p class="font-body font-bold text-brutalista">Total</p>
+                <p id="cartTotal" class="font-display text-3xl text-cereja">R$ 0,00</p>
+            </div>
+            <button id="goToPaymentBtn"
+                class="btn-tap w-full bg-cereja text-white font-body font-bold py-3 border-2 border-brutalista brutal-shadow-sm text-base mb-2">
+                Ir para Pagamento
+            </button>
+            <button id="continueShoppingBtn"
+                class="btn-tap w-full bg-white text-brutalista font-body font-bold py-2 border-2 border-brutalista text-sm">
+                Continuar Comprando
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         TELA DE PAGAMENTO (fullscreen)
+    ════════════════════════════════════════ -->
+    <div id="paymentScreen"
+         class="fixed inset-0 z-50 bg-cereja hidden flex-col items-center justify-start overflow-y-auto py-8 px-4">
+
+        <!-- Fechar -->
+        <button id="closePaymentBtn"
+            class="btn-tap absolute top-5 right-5 w-10 h-10 bg-white border-2 border-brutalista font-bold text-brutalista flex items-center justify-center">
+            ✕
+        </button>
+
+        <!-- Título -->
+        <div class="text-center mb-6 mt-4">
+            <h1 class="font-display text-5xl text-white mb-1">Quase lá!</h1>
+            <p class="font-body text-white text-sm">Finalize o pagamento via Pix para liberar seu pedido.</p>
+        </div>
+
+        <!-- Card branco -->
+        <div class="bg-white border-2 border-brutalista brutal-shadow w-full max-w-sm p-5">
+
+            <!-- QR Code -->
+            <div id="qrCodeContainer"
+                 class="bg-gray-100 border-2 border-brutalista aspect-square mb-4 flex items-center justify-center">
+                <div class="text-center">
+                    <p class="text-xs text-gray-500 font-bold">Gerando QR Code...</p>
+                </div>
+            </div>
+
+            <!-- Valor -->
+            <p class="text-xs text-gray-500 font-bold mb-1">Valor Total</p>
+            <p id="paymentTotal" class="font-display text-3xl text-cereja mb-4">R$ 0,00</p>
+
+            <!-- Código Pix -->
+            <div class="bg-gray-100 border-2 border-brutalista p-3 mb-4">
+                <p class="text-xs text-gray-500 font-bold mb-1">Código Pix Copia e Cola</p>
+                <p id="pixCode"
+                   class="font-mono text-xs text-brutalista break-all font-bold leading-relaxed">
+                   Aguardando geração...
+                </p>
+            </div>
+
+            <!-- Botão copiar -->
+            <button id="copyPixBtn"
+                class="btn-tap w-full bg-brutalista text-white font-body font-bold py-3 border-2 border-brutalista brutal-shadow-sm mb-3 text-sm">
+                Copiar Código Pix
+            </button>
+
+            <!-- Status polling -->
+            <div id="paymentStatus"
+                 class="text-center p-3 bg-yellow-50 border-2 border-brutalista">
+                <p class="text-sm font-bold text-brutalista">⏳ Aguardando confirmação...</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════
+         TELA DE SUCESSO (fullscreen)
+    ════════════════════════════════════════ -->
+    <div id="successScreen"
+         class="fixed inset-0 z-50 bg-cereja hidden flex-col items-center justify-center px-6 text-center overflow-hidden">
+
+        <!-- Cerejas animadas de fundo -->
+        <div id="cherryParticles" class="absolute inset-0 pointer-events-none"></div>
+
+        <!-- Conteúdo -->
+        <div class="relative z-10 flex flex-col items-center">
+            <div class="text-7xl mb-4 animate-bounce">🍒</div>
+            <h1 class="font-display text-5xl text-white mb-2 drop-shadow-lg">Pagamento<br>Aprovado!</h1>
+            <p class="font-display text-white text-sm tracking-widest mb-6">— CHERRY BOMB —</p>
+
+            <div class="bg-white border-2 border-brutalista brutal-shadow px-6 py-4 mb-6 w-full max-w-sm">
+                <p class="font-body font-bold text-brutalista text-sm">
+                    Aguarde o giro das molas e retire seus mimos abaixo. 🍒
+                </p>
+            </div>
+
+            <img src="logo.svg" alt="Cherry Bomb" class="h-12 w-12 mb-6 opacity-80">
+
+            <button id="newOrderBtn"
+                class="btn-tap bg-escuro text-white font-body font-bold px-8 py-3 border-2 border-brutalista brutal-shadow text-sm">
+                Fazer novo pedido
+            </button>
+        </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════
+         JAVASCRIPT
+    ════════════════════════════════════════ -->
+    <script>
+    // ─────────────────────────────────────────
+    // CONFIGURAÇÃO DA API
+    // ─────────────────────────────────────────
+    const API_URL = 'https://hearty-tranquility-production.up.railway.app';
+
+    // ─────────────────────────────────────────
+    // PRODUTOS (carregados da API)
+    // ─────────────────────────────────────────
+    let PRODUCTS = [];
+
+    async function carregarProdutos() {
+        try {
+            const res = await fetch(`${API_URL}/produtos`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
+            if (!res.ok) throw new Error('Erro ao carregar produtos.');
+            PRODUCTS = await res.json();
+            renderGrid();
+            updateFooter();
+        } catch (err) {
+            console.error(err);
+            document.getElementById('productGrid').innerHTML = `
+                <div class="col-span-4 text-center py-12">
+                    <p class="font-body font-bold text-brutalista text-sm">⚠️ Erro ao carregar produtos.<br>Verifique a conexão.</p>
+                </div>
+            `;
+        }
+    }
+
+    // ─────────────────────────────────────────
+    // ESTADO DO CARRINHO
+    // ─────────────────────────────────────────
+    // { 'A1': { product, qty }, ... }
+    const cart = {};
+
+    // ─────────────────────────────────────────
+    // UTILITÁRIOS
+    // ─────────────────────────────────────────
+    const fmt = (val) =>
+        'R$ ' + val.toFixed(2).replace('.', ',');
+
+    function cartTotal() {
+        return Object.values(cart)
+            .reduce((sum, i) => sum + i.product.price * i.qty, 0);
+    }
+
+    function cartCount() {
+        return Object.values(cart).reduce((sum, i) => sum + i.qty, 0);
+    }
+
+    function updateFooter() {
+        document.getElementById('footerSubtotal').textContent = fmt(cartTotal());
+        document.getElementById('cartTotal').textContent = fmt(cartTotal());
+    }
+
+    // ─────────────────────────────────────────
+    // RENDERIZAR GRID
+    // ─────────────────────────────────────────
+    function renderGrid() {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = '';
+
+        PRODUCTS.forEach(product => {
+            const esgotado = product.stock === 0;
+
+            const card = document.createElement('div');
+            card.className = `bg-white border-2 border-brutalista brutal-shadow-sm p-2 flex flex-col${esgotado ? ' out-of-stock' : ''}`;
+            card.dataset.id = product.id;
+
+            card.innerHTML = `
+                <!-- Foto + Badge sobrepostos -->
+                <div class="relative w-full aspect-square mb-2">
+                    <div class="bg-gray-100 border-2 border-brutalista w-full h-full flex items-center justify-center text-xl overflow-hidden">
+                        ${product.image_url
+                            ? `<img src="${product.image_url}" class="w-full h-full object-cover">`
+                            : `📦`
+                        }
+                    </div>
+                    <span class="absolute top-0 left-0 bg-brutalista text-white font-body font-bold text-xs px-1.5 py-0.5">${product.id}</span>
+                </div>
+
+                <!-- Nome -->
+                <p class="font-display text-xs text-brutalista leading-tight mb-0.5">${product.name}</p>
+
+                <!-- Preço -->
+                <p class="font-body font-bold text-xs text-cereja mb-2">${fmt(product.price)}</p>
+
+                ${esgotado
+                    ? `<button class="w-full bg-gray-200 text-gray-500 font-body font-bold py-1 border-2 border-brutalista text-xs cursor-not-allowed" disabled>Esgotado</button>`
+                    : `<button class="btn-tap add-btn w-full bg-cereja text-white font-body font-bold py-1.5 border-2 border-brutalista brutal-shadow-sm text-xs">ADD</button>
+                       <div class="qty-selector">
+                           <button class="qty-btn qty-trash" title="Remover">✕</button>
+                           <button class="qty-btn qty-minus">−</button>
+                           <span class="qty-value">1</span>
+                           <button class="qty-btn qty-plus">+</button>
+                       </div>`
+                }
+            `;
+
+            grid.appendChild(card);
+        });
+
+        // Registra eventos após renderizar
+        bindCardEvents();
+    }
+
+    // ─────────────────────────────────────────
+    // EVENTOS DOS CARDS
+    // ─────────────────────────────────────────
+    function bindCardEvents() {
+        document.querySelectorAll('.product-card-wrap, [data-id]').forEach(card => {
+            const id = card.dataset.id;
+            const product = PRODUCTS.find(p => p.id === id);
+            if (!product || product.stock === 0) return;
+
+            const addBtn      = card.querySelector('.add-btn');
+            const qtySelector = card.querySelector('.qty-selector');
+            const qtyValue    = card.querySelector('.qty-value');
+            const trashBtn    = card.querySelector('.qty-trash');
+            const minusBtn    = card.querySelector('.qty-minus');
+            const plusBtn     = card.querySelector('.qty-plus');
+
+            // ADD
+            addBtn.addEventListener('click', () => {
+                cart[id] = { product, qty: 1 };
+                addBtn.classList.add('hidden');
+                qtySelector.classList.add('visible');
+                qtyValue.textContent = '1';
+                updateFooter();
+                updateCartSheet();
+            });
+
+            // LIXEIRA — zera e volta ao ADD
+            trashBtn.addEventListener('click', () => {
+                delete cart[id];
+                qtySelector.classList.remove('visible');
+                addBtn.classList.remove('hidden');
+                qtyValue.textContent = '1';
+                updateFooter();
+                updateCartSheet();
+            });
+
+            // MENOS — mínimo 1 (lixeira para zerar)
+            minusBtn.addEventListener('click', () => {
+                if (!cart[id]) return;
+                if (cart[id].qty > 1) {
+                    cart[id].qty--;
+                    qtyValue.textContent = cart[id].qty;
+                    updateFooter();
+                    updateCartSheet();
+                }
+            });
+
+            // MAIS — limitado ao estoque
+            plusBtn.addEventListener('click', () => {
+                if (!cart[id]) return;
+                if (cart[id].qty < product.stock) {
+                    cart[id].qty++;
+                    qtyValue.textContent = cart[id].qty;
+                    updateFooter();
+                    updateCartSheet();
+                }
+                // Trava o botão visualmente se atingiu o limite
+                plusBtn.style.opacity = cart[id].qty >= product.stock ? '0.3' : '1';
+                plusBtn.style.pointerEvents = cart[id].qty >= product.stock ? 'none' : 'auto';
+            });
+        });
+    }
+
+    // ─────────────────────────────────────────
+    // BOTTOM SHEET — SACOLA
+    // ─────────────────────────────────────────
+    function updateCartSheet() {
+        const list    = document.getElementById('cartItemsList');
+        const empty   = document.getElementById('cartEmpty');
+        const items   = Object.values(cart);
+
+        if (items.length === 0) {
+            list.classList.add('hidden');
+            empty.classList.remove('hidden');
+        } else {
+            list.classList.remove('hidden');
+            empty.classList.add('hidden');
+            list.innerHTML = items.map(({ product, qty }) => `
+                <div class="flex justify-between items-center p-3 border-2 border-brutalista">
+                    <div>
+                        <p class="font-body font-bold text-brutalista text-sm">${product.name}</p>
+                        <p class="font-body text-xs text-gray-500">${product.id} · Qtd: ${qty}</p>
+                    </div>
+                    <p class="font-body font-bold text-cereja text-sm">${fmt(product.price * qty)}</p>
+                </div>
+            `).join('');
+        }
+    }
+
+    function openCart() {
+        updateCartSheet();
+        document.getElementById('cartSheet').classList.remove('translate-y-full');
+        document.getElementById('cartSheet').classList.add('translate-y-0');
+        document.getElementById('cartBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+        document.getElementById('cartBackdrop').classList.add('opacity-100');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeCart() {
+        document.getElementById('cartSheet').classList.add('translate-y-full');
+        document.getElementById('cartSheet').classList.remove('translate-y-0');
+        document.getElementById('cartBackdrop').classList.add('opacity-0', 'pointer-events-none');
+        document.getElementById('cartBackdrop').classList.remove('opacity-100');
+        document.body.style.overflow = '';
+    }
+
+    // ─────────────────────────────────────────
+    // TELA DE PAGAMENTO
+    // ─────────────────────────────────────────
+    let pollingInterval = null;
+    let currentPaymentId = null;
+
+    async function openPaymentScreen() {
+        closeCart();
+        document.getElementById('paymentScreen').classList.remove('hidden');
+        document.getElementById('paymentScreen').classList.add('flex');
+        document.getElementById('paymentTotal').textContent = fmt(cartTotal());
+        document.getElementById('pixCode').textContent = 'Gerando...';
+        document.getElementById('qrCodeContainer').innerHTML = `
+            <div class="text-center">
+                <p class="text-xs text-gray-500 font-bold">Gerando QR Code...</p>
+            </div>`;
+
+        try {
+            const itens = Object.values(cart).map(({ product, qty }) => ({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                qty
+            }));
+
+            const res = await fetch(`${API_URL}/gerar-pagamento`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
+                body: JSON.stringify({ itens })
+            });
+
+            if (!res.ok) throw new Error('Erro ao gerar pagamento.');
+
+            const data = await res.json();
+            currentPaymentId = data.id;
+
+            // Exibe valor real
+            document.getElementById('paymentTotal').textContent = fmt(data.total);
+
+            // Exibe QR Code via base64
+            document.getElementById('qrCodeContainer').innerHTML = `
+                <img src="data:image/png;base64,${data.qr_code_base64}"
+                     alt="QR Code Pix"
+                     class="w-full h-full object-contain p-2">`;
+
+            // Exibe código copia e cola
+            document.getElementById('pixCode').textContent = data.qr_code;
+
+            // Inicia polling
+            iniciarPolling();
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('paymentStatus').innerHTML = `
+                <p class="text-sm font-bold text-red-600">⚠️ Erro ao gerar pagamento. Tente novamente.</p>`;
+        }
+    }
+
+    function closePaymentScreen() {
+        document.getElementById('paymentScreen').classList.add('hidden');
+        document.getElementById('paymentScreen').classList.remove('flex');
+        if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
+    }
+
+    function showSuccessScreen() {
+        closePaymentScreen();
+        document.getElementById('successScreen').classList.remove('hidden');
+        document.getElementById('successScreen').classList.add('flex');
+        dispararCerejas();
+    }
+
+    function dispararCerejas() {
+        const container = document.getElementById('cherryParticles');
+        container.innerHTML = '';
+        const emojis = ['🍒', '✨', '🍒', '⭐', '🍒'];
+
+        for (let i = 0; i < 18; i++) {
+            const el = document.createElement('span');
+            el.className = 'cherry-particle';
+            el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (2 + Math.random() * 3) + 's';
+            el.style.animationDelay = (Math.random() * 2) + 's';
+            el.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+            container.appendChild(el);
+        }
+
+        setTimeout(() => {
+            for (let i = 0; i < 12; i++) {
+                const el = document.createElement('span');
+                el.className = 'cherry-particle';
+                el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (2 + Math.random() * 2) + 's';
+                el.style.animationDelay = (Math.random() * 1) + 's';
+                el.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+                container.appendChild(el);
+            }
+        }, 2000);
+    }
+
+    function resetApp() {
+        // Zera carrinho e cards
+        Object.keys(cart).forEach(id => delete cart[id]);
+        updateFooter();
+        document.getElementById('successScreen').classList.add('hidden');
+        document.getElementById('successScreen').classList.remove('flex');
+        renderGrid(); // re-renderiza tudo zerado
+    }
+
+function iniciarPolling() {
+        if (pollingInterval) clearInterval(pollingInterval);
+
+        pollingInterval = setInterval(async () => {
+            if (!currentPaymentId) return;
+            try {
+                const res = await fetch(`${API_URL}/status/${currentPaymentId}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
+                const data = await res.json();
+
+                if (data.status === 'approved') {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    showSuccessScreen();
+                } else {
+                    document.getElementById('paymentStatus').innerHTML = `
+                        <p class="text-sm font-bold text-brutalista">⏳ Aguardando confirmação...</p>`;
+                }
+            } catch (err) {
+                console.error('Erro no polling:', err);
+            }
+        }, 3000);
+    }
+
+    // Copiar código Pix
+    document.getElementById('copyPixBtn').addEventListener('click', () => {
+        const code = document.getElementById('pixCode').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.getElementById('copyPixBtn');
+            btn.textContent = '✓ Copiado!';
+            setTimeout(() => { btn.textContent = 'Copiar Código Pix'; }, 2000);
+        });
+    });
+
+    // ─────────────────────────────────────────
+    // EVENT LISTENERS GLOBAIS
+    // ─────────────────────────────────────────
+    document.getElementById('checkoutBtn').addEventListener('click', openCart);
+    document.getElementById('clearCartBtn').addEventListener('click', () => {
+        Object.keys(cart).forEach(id => delete cart[id]);
+        document.querySelectorAll('[data-id]').forEach(card => {
+            const addBtn      = card.querySelector('.add-btn');
+            const qtySelector = card.querySelector('.qty-selector');
+            const qtyValue    = card.querySelector('.qty-value');
+            if (addBtn && qtySelector) {
+                addBtn.classList.remove('hidden');
+                qtySelector.classList.remove('visible');
+                if (qtyValue) qtyValue.textContent = '1';
+            }
+        });
+        updateFooter();
+        updateCartSheet();
+    });
+    document.getElementById('closeCartBtn').addEventListener('click', closeCart);
+    document.getElementById('cartBackdrop').addEventListener('click', closeCart);
+    document.getElementById('continueShoppingBtn').addEventListener('click', closeCart);
+    document.getElementById('goToPaymentBtn').addEventListener('click', openPaymentScreen);
+    document.getElementById('closePaymentBtn').addEventListener('click', closePaymentScreen);
+    document.getElementById('newOrderBtn').addEventListener('click', resetApp);
+
+    // ─────────────────────────────────────────
+    // INIT
+    // ─────────────────────────────────────────
+    carregarProdutos();
+    </script>
+
+</body>
+</html>
