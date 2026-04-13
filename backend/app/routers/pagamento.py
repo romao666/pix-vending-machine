@@ -33,8 +33,9 @@ async def gerar_pagamento(body: PagamentoRequest):
         raise HTTPException(status_code=400, detail="Carrinho vazio.")
 
     # Calcula total real
-    total = sum(item.price * item.qty for item in body.itens)
-    total = round(total, 2)
+    from decimal import Decimal, ROUND_HALF_UP
+    total = sum(Decimal(str(item.price)) * item.qty for item in body.itens)
+    total = float(total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
 
     # Descrição dinâmica (ex: "Colar x2, Pulseira x1")
     descricao = ", ".join(

@@ -106,6 +106,17 @@
         /* Animação bottom sheet */
         #cartSheet { transition: transform 0.25s ease-out; }
         #cartBackdrop { transition: opacity 0.25s ease-out; }
+/* Partículas de cereja */
+        .cherry-particle {
+            position: absolute;
+            animation: cherryFall linear forwards;
+            pointer-events: none;
+        }
+
+        @keyframes cherryFall {
+            0%   { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }    
     </style>
 </head>
 <body class="bg-white font-body">
@@ -268,18 +279,30 @@
          TELA DE SUCESSO (fullscreen)
     ════════════════════════════════════════ -->
     <div id="successScreen"
-         class="fixed inset-0 z-50 bg-cereja hidden flex-col items-center justify-center px-6 text-center">
-        <div id="cherryAnim" class="text-6xl mb-4 animate-bounce">🍒</div>
-        <h1 class="font-display text-5xl text-white mb-3">Pagamento<br>Aprovado!</h1>
-        <div class="bg-white border-2 border-brutalista brutal-shadow px-6 py-4 mb-6 w-full max-w-sm">
-            <p class="font-body font-bold text-brutalista text-sm">
-                Aguarde a liberação dos itens.
-            </p>
+         class="fixed inset-0 z-50 bg-cereja hidden flex-col items-center justify-center px-6 text-center overflow-hidden">
+
+        <!-- Cerejas animadas de fundo -->
+        <div id="cherryParticles" class="absolute inset-0 pointer-events-none"></div>
+
+        <!-- Conteúdo -->
+        <div class="relative z-10 flex flex-col items-center">
+            <div class="text-7xl mb-4 animate-bounce">🍒</div>
+            <h1 class="font-display text-5xl text-white mb-2 drop-shadow-lg">Pagamento<br>Aprovado!</h1>
+            <p class="font-display text-white text-sm tracking-widest mb-6">— CHERRY BOMB —</p>
+
+            <div class="bg-white border-2 border-brutalista brutal-shadow px-6 py-4 mb-6 w-full max-w-sm">
+                <p class="font-body font-bold text-brutalista text-sm">
+                    Aguarde o giro das molas e retire seus mimos abaixo. 🍒
+                </p>
+            </div>
+
+            <img src="logo.svg" alt="Cherry Bomb" class="h-12 w-12 mb-6 opacity-80">
+
+            <button id="newOrderBtn"
+                class="btn-tap bg-escuro text-white font-body font-bold px-8 py-3 border-2 border-brutalista brutal-shadow text-sm">
+                Fazer novo pedido
+            </button>
         </div>
-        <button id="newOrderBtn"
-            class="btn-tap bg-escuro text-white font-body font-bold px-8 py-3 border-2 border-brutalista brutal-shadow text-sm">
-            Fazer novo pedido
-        </button>
     </div>
 
 
@@ -290,7 +313,7 @@
     // ─────────────────────────────────────────
     // CONFIGURAÇÃO DA API
     // ─────────────────────────────────────────
-    const API_URL = 'http://localhost:8000';
+    const API_URL = 'https://thermos-bonus-detective.ngrok-free.dev';
 
     // ─────────────────────────────────────────
     // PRODUTOS (carregados da API)
@@ -299,7 +322,9 @@
 
     async function carregarProdutos() {
         try {
-            const res = await fetch(`${API_URL}/produtos`);
+            const res = await fetch(`${API_URL}/produtos`, {
+                headers: { 'ngrok-skip-browser-warning': 'true' }
+            });
             if (!res.ok) throw new Error('Erro ao carregar produtos.');
             PRODUCTS = await res.json();
             renderGrid();
@@ -519,7 +544,10 @@
 
             const res = await fetch(`${API_URL}/gerar-pagamento`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'ngrok-skip-browser-warning': 'true'
+                },
                 body: JSON.stringify({ itens })
             });
 
@@ -560,6 +588,37 @@
         closePaymentScreen();
         document.getElementById('successScreen').classList.remove('hidden');
         document.getElementById('successScreen').classList.add('flex');
+        dispararCerejas();
+    }
+
+    function dispararCerejas() {
+        const container = document.getElementById('cherryParticles');
+        container.innerHTML = '';
+        const emojis = ['🍒', '✨', '🍒', '⭐', '🍒'];
+
+        for (let i = 0; i < 18; i++) {
+            const el = document.createElement('span');
+            el.className = 'cherry-particle';
+            el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (2 + Math.random() * 3) + 's';
+            el.style.animationDelay = (Math.random() * 2) + 's';
+            el.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+            container.appendChild(el);
+        }
+
+        setTimeout(() => {
+            for (let i = 0; i < 12; i++) {
+                const el = document.createElement('span');
+                el.className = 'cherry-particle';
+                el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (2 + Math.random() * 2) + 's';
+                el.style.animationDelay = (Math.random() * 1) + 's';
+                el.style.fontSize = (1 + Math.random() * 1.5) + 'rem';
+                container.appendChild(el);
+            }
+        }, 2000);
     }
 
     function resetApp() {
@@ -577,7 +636,9 @@ function iniciarPolling() {
         pollingInterval = setInterval(async () => {
             if (!currentPaymentId) return;
             try {
-                const res = await fetch(`${API_URL}/status/${currentPaymentId}`);
+                const res = await fetch(`${API_URL}/status/${currentPaymentId}`, {
+                    headers: { 'ngrok-skip-browser-warning': 'true' }
+                });
                 const data = await res.json();
 
                 if (data.status === 'approved') {

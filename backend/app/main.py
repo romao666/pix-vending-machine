@@ -6,12 +6,23 @@ from app.routers import produtos, pagamento
 
 app = FastAPI(title="Cherry Bomb Handmade — API")
 
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request as StarletteRequest
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+class NgrokMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: StarletteRequest, call_next):
+        response = await call_next(request)
+        return response
+
+app.add_middleware(NgrokMiddleware)
 
 sdk = mercadopago.SDK(settings.mp_token)
 
@@ -43,8 +54,6 @@ async def webhook(request: Request):
             print(f"✅ Pagamento {p_id} APROVADO!")
             db_pagamentos[p_id] = "approved"
         else:
-            # TODO: remover em produção
-            print(f"🧪 Forçando aprovação para teste: {p_id}")
-            db_pagamentos[p_id] = "approved"
+            print(f"⏳ Pagamento {p_id} ainda não aprovado — status: {status}")
 
     return {"status": "ok"}
