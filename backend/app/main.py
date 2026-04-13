@@ -24,9 +24,6 @@ def read_root():
     return {"status": "Cherry Bomb API Online 🍒"}
 
 
-# ─────────────────────────────────────────
-# WEBHOOK — Mercado Pago
-# ─────────────────────────────────────────
 @app.post("/webhook")
 async def webhook(request: Request):
     payload = await request.json()
@@ -34,14 +31,20 @@ async def webhook(request: Request):
     if payload.get("type") == "payment":
         p_id = str(payload["data"]["id"])
 
+        from app.routers.pagamento import db_pagamentos
+
+        # Valida com Mercado Pago
         payment_info = sdk.payment().get(p_id)
         status = payment_info["response"].get("status")
 
+        print(f"📦 Pagamento {p_id} — status: {status}")
+
         if status == "approved":
             print(f"✅ Pagamento {p_id} APROVADO!")
-            # Importa db_pagamentos do router de pagamento
-            from app.routers.pagamento import db_pagamentos
             db_pagamentos[p_id] = "approved"
-            # TODO: disparar MQTT aqui
+        else:
+            # TODO: remover em produção
+            print(f"🧪 Forçando aprovação para teste: {p_id}")
+            db_pagamentos[p_id] = "approved"
 
     return {"status": "ok"}

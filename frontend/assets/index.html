@@ -273,7 +273,7 @@
         <h1 class="font-display text-5xl text-white mb-3">Pagamento<br>Aprovado!</h1>
         <div class="bg-white border-2 border-brutalista brutal-shadow px-6 py-4 mb-6 w-full max-w-sm">
             <p class="font-body font-bold text-brutalista text-sm">
-                Aguarde o giro das molas e retire seus mimos abaixo. 🍒
+                Aguarde a liberação dos itens.
             </p>
         </div>
         <button id="newOrderBtn"
@@ -498,13 +498,56 @@
     let pollingInterval = null;
     let currentPaymentId = null;
 
-    function openPaymentScreen() {
+    async function openPaymentScreen() {
         closeCart();
         document.getElementById('paymentScreen').classList.remove('hidden');
         document.getElementById('paymentScreen').classList.add('flex');
         document.getElementById('paymentTotal').textContent = fmt(cartTotal());
-        // Fase 3: aqui chamaremos POST /gerar-pagamento
-        // Por ora mostra placeholder
+        document.getElementById('pixCode').textContent = 'Gerando...';
+        document.getElementById('qrCodeContainer').innerHTML = `
+            <div class="text-center">
+                <p class="text-xs text-gray-500 font-bold">Gerando QR Code...</p>
+            </div>`;
+
+        try {
+            const itens = Object.values(cart).map(({ product, qty }) => ({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                qty
+            }));
+
+            const res = await fetch(`${API_URL}/gerar-pagamento`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itens })
+            });
+
+            if (!res.ok) throw new Error('Erro ao gerar pagamento.');
+
+            const data = await res.json();
+            currentPaymentId = data.id;
+
+            // Exibe valor real
+            document.getElementById('paymentTotal').textContent = fmt(data.total);
+
+            // Exibe QR Code via base64
+            document.getElementById('qrCodeContainer').innerHTML = `
+                <img src="data:image/png;base64,${data.qr_code_base64}"
+                     alt="QR Code Pix"
+                     class="w-full h-full object-contain p-2">`;
+
+            // Exibe código copia e cola
+            document.getElementById('pixCode').textContent = data.qr_code;
+
+            // Inicia polling
+            iniciarPolling();
+
+        } catch (err) {
+            console.error(err);
+            document.getElementById('paymentStatus').innerHTML = `
+                <p class="text-sm font-bold text-red-600">⚠️ Erro ao gerar pagamento. Tente novamente.</p>`;
+        }
     }
 
     function closePaymentScreen() {
@@ -526,6 +569,29 @@
         document.getElementById('successScreen').classList.add('hidden');
         document.getElementById('successScreen').classList.remove('flex');
         renderGrid(); // re-renderiza tudo zerado
+    }
+
+function iniciarPolling() {
+        if (pollingInterval) clearInterval(pollingInterval);
+
+        pollingInterval = setInterval(async () => {
+            if (!currentPaymentId) return;
+            try {
+                const res = await fetch(`${API_URL}/status/${currentPaymentId}`);
+                const data = await res.json();
+
+                if (data.status === 'approved') {
+                    clearInterval(pollingInterval);
+                    pollingInterval = null;
+                    showSuccessScreen();
+                } else {
+                    document.getElementById('paymentStatus').innerHTML = `
+                        <p class="text-sm font-bold text-brutalista">⏳ Aguardando confirmação...</p>`;
+                }
+            } catch (err) {
+                console.error('Erro no polling:', err);
+            }
+        }, 3000);
     }
 
     // Copiar código Pix
