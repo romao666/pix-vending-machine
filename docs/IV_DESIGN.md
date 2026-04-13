@@ -5,61 +5,111 @@
 * **Conceito:** Vending machine de artesanatos autênticos via QR Code e PIX.
 * **Estética Core:** Y2K (anos 2000), Pop-Punk, Neobrutalismo focado em Polaroids.
 * **Tom de Voz:** Direto, moderno e autêntico.
-* **Abordagem UI:** Mobile-First absoluto (acesso exclusivo via QR code na máquina). Sem efeitos de "hover" ou "zoom", interface 100% estática e focada no toque.
+* **Abordagem UI:** Mobile-First absoluto (acesso exclusivo via QR code na máquina). Sem efeitos de "hover" ou "zoom", interface 100% estática e focada no toque (`:active` only).
 
 ---
 
 ## 2. Paleta de Cores (Bicolor Estrito)
-A paleta abandona o rosa e foca no contraste absoluto entre o vermelho, o preto e o branco.
+A paleta é restrita a 4 cores. **Rosa é expressamente proibido.**
 
-* **Cor Primária (Vermelho Cereja Vibrante):** `#C8102E` - Uso no header, fundo de modais de checkout e botões "ADD" padrão.
-* **Cor Secundária (Vermelho Escuro):** `#8B0000` - Uso no rodapé (footer da sacola) e botão de lixeira ("X") para indicar uma ação destrutiva, criando profundidade sem sair da paleta.
-* **Cor de Fundo/Cards:** `#FFFFFF` (Branco Puro) - Uso nas molduras de Polaroid e fundo da página.
-* **Contraste e Linhas:** `#1A1A1A` (Preto Sólido) - Textos, preços e bordas neobrutalistas grossas.
+| Cor | Hex | Uso |
+|-----|-----|-----|
+| Vermelho Cereja Vibrante | `#C8102E` | Header, fundo de modais, botões ADD |
+| Vermelho Escuro | `#8B0000` | Footer da sacola, botão lixeira/X, botão Sacola |
+| Branco Puro | `#FFFFFF` | Cards, fundos, textos sobre vermelho |
+| Preto Sólido | `#1A1A1A` | Bordas, textos, badges de localização |
 
 ---
 
 ## 3. Tipografia
-* **Display (Títulos e Marcas):** `Shrikhand` ou `Bangers` (Uso no Header e telas de impacto).
-* **Interface (Corpo e Botões):** `Poppins` ou `Outfit` (Fonte geométrica sem serifa, uso em nomes de produtos, botões e controles de quantidade).
+* **Display (Títulos e Marcas):** `Shrikhand` — Header, telas de impacto (Quase lá!, Pagamento Aprovado!)
+* **Interface (Corpo e Botões):** `Poppins` — Nomes de produtos, preços, botões, controles
 
 ---
 
 ## 4. Componentes de Interface (Polaroid Neobrutalista)
-* **Estilo Geral:** Bordas sólidas pretas (`border-2 border-black`) em todos os cards e modais. Sem arredondamentos excessivos.
-* **Cards de Produto (Mockup Polaroid):**
-  * Fundo branco, formato vertical com a foto quadrada no topo.
-  * Badge de identificação (Ex: A1, B4) colada no canto superior esquerdo da foto (Fundo preto, texto branco).
-  * Informações em linha única abaixo da foto: `NOME - R$ XX,XX`.
-* **Controles Dinâmicos (Botões):**
-  * **Estado 1 (Vazio):** Botão "ADD" vermelho vibrante, largura total.
-  * **Estado 2 (Selecionado):** Seletor embutido no formato `[ - ] [ Qtd ] [ + ] [ X ]`.
-  * O botão `[ X ]` usa o Vermelho Escuro e serve para zerar a quantidade imediatamente.
+
+### Regras Globais
+- Bordas sólidas pretas `2px solid #1A1A1A` em todos os elementos
+- Sombras sólidas sem desfoque: `4px 4px 0px #1A1A1A` (brutal) e `2px 2px 0px #1A1A1A` (brutal-sm)
+- **Sem bordas arredondadas** (exceto onde já existente e aprovado)
+- **Sem hover** — apenas `:active` com `transform: scale(0.95)`
+
+### Cards de Produto (Polaroid)
+- Fundo branco, formato vertical
+- Foto quadrada no topo com badge de localização sobreposto no canto superior esquerdo
+- Badge: fundo `#1A1A1A`, texto branco, fonte Poppins bold
+- Nome em Shrikhand abaixo da foto
+- Preço em `#C8102E` abaixo do nome
+- Botão ADD vermelho cereja largura total
+
+### Controles Dinâmicos
+- **Estado 1 (vazio):** Botão `ADD` vermelho cereja (`#C8102E`)
+- **Estado 2 (selecionado):** Seletor `[ ✕ ] [ − ] [ Qtd ] [ + ]`
+- Botão `✕` usa vermelho escuro (`#8B0000`) — ação destrutiva
+- Botão `+` trava visualmente (opacity 0.3) ao atingir limite de estoque
+
+### Header
+- Fundo `#C8102E`, borda inferior `4px solid #1A1A1A`
+- Logo SVG + texto "Cherry Bomb" + "— HANDMADE —" em linha horizontal
+
+### Footer (Sacola Fixa)
+- Fundo branco, borda superior `4px solid #1A1A1A`
+- Subtotal em vermelho cereja à esquerda
+- Botão Sacola com fundo `#8B0000` e ícone SVG à direita
+
+### Bottom Sheet (Sacola)
+- Sem bordas arredondadas
+- Borda superior `4px solid #1A1A1A`
+- Botão "Limpar" vermelho escuro + botão "✕" branco no header
+- Itens listados com nome, localização, quantidade e valor
+
+### Tela de Pagamento
+- Fundo `#C8102E` fullscreen
+- Título "Quase lá!" em Shrikhand branco
+- Card branco central com QR Code real, valor, código Pix e botão copiar
+- Status "⏳ Aguardando confirmação..." em fundo amarelo claro
+
+### Tela de Sucesso
+- Fundo `#C8102E` fullscreen
+- Partículas de cerejas e estrelas caindo (animação CSS)
+- Título "Pagamento Aprovado!" em Shrikhand branco
+- Card branco com instrução de retirada
+- Logo SVG no rodapé
+- Botão "Fazer novo pedido" vermelho escuro
 
 ---
 
 ## 5. Fluxo de Telas (Mobile)
 
 ### Tela 1: Vitrine (Home)
-* **Header:** Fundo Vermelho Vibrante, Logo SVG centralizada com o texto "- HANDMADE -" em branco.
-* **Body:** Grid de **4 colunas e 5 linhas (A1 a E4)**.
-* **Sacola (Footer):** Barra fixa inferior com fundo branco, mostrando o "Subtotal R$ XX,XX" em vermelho à esquerda, e um ícone de sacola com fundo Vermelho Escuro à direita para ir ao Checkout.
+- Header com logo + "Cherry Bomb" + "— HANDMADE —"
+- Grid de **4 colunas × 5 linhas (A1→E4)** renderizado dinamicamente via API
+- Items esgotados aparecem com opacity 0.45 e grayscale 60%, pointer-events none
+- Footer fixo com subtotal dinâmico e botão Sacola
 
-### Tela 2: Pagamento (Checkout PIX)
-* **Visual:** Fundo vermelho predominante.
-* **Título:** "Quase lá! 🍒" (Fonte de Display branca).
-* **Subtítulo:** "Finalize o pagamento via Pix para liberar seu pedido."
-* **Elementos:** Card branco central com QR Code, botão "Copiar Código Pix" preto e indicador de "Aguardando confirmação...".
+### Tela 2: Bottom Sheet — Sacola
+- Desliza de baixo para cima sobre a vitrine
+- Lista dinâmica dos itens do carrinho
+- Total calculado em tempo real
+- Botões: "Ir para Pagamento" e "Continuar Comprando"
 
-### Tela 3: Confirmação (Sucesso)
-* **Gatilho:** Ativada automaticamente via polling de status (`approved`).
-* **Visual:** Animação de sucesso (brilhos/cerejas).
-* **Copywriting:** "Pagamento Aprovado! 🍒"
-* **Instrução:** "Aguarde o giro das molas e retire seus mimos abaixo."
+### Tela 3: Pagamento (Checkout PIX)
+- Gerado via `POST /gerar-pagamento` com itens reais
+- QR Code renderizado via base64
+- Polling a cada 3s em `GET /status/{id}`
+
+### Tela 4: Confirmação (Sucesso)
+- Disparada automaticamente pelo polling ao detectar `approved`
+- Animação de cerejas e estrelas caindo
+- Botão "Fazer novo pedido" reseta o app
 
 ---
 
 ## 6. Lógica de Negócio (Frontend)
-* Bloqueio automático de adição de itens caso exceda o estoque disponível.
-* Ação do botão [X] deve retornar a quantidade para zero e restaurar o botão "ADD".
-* Polling (consulta recorrente) ao backend a cada 3 segundos para detectar a aprovação do pagamento sem necessidade de atualização manual da página.
+- Cards renderizados dinamicamente via `GET /produtos`
+- Carrinho gerenciado em memória com `data-id` por card
+- Subtotal atualizado em tempo real a cada interação
+- Botão `+` bloqueado ao atingir limite de estoque
+- Polling de 3s detecta aprovação sem refresh manual
+- Reset completo do app após novo pedido
