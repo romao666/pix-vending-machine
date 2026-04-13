@@ -27,17 +27,24 @@ A paleta é restrita a 4 cores. **Rosa é expressamente proibido.**
 
 ---
 
-## 4. Componentes de Interface (Polaroid Neobrutalista)
+## 4. Assets
+* **logo.svg** — Logo principal com traços brancos (uso sobre fundo vermelho)
+* **logo-red.svg** — Logo com traços vermelhos (uso sobre fundo branco, ex: tela de login do admin)
+
+---
+
+## 5. Componentes de Interface (Polaroid Neobrutalista)
 
 ### Regras Globais
 - Bordas sólidas pretas `2px solid #1A1A1A` em todos os elementos
 - Sombras sólidas sem desfoque: `4px 4px 0px #1A1A1A` (brutal) e `2px 2px 0px #1A1A1A` (brutal-sm)
-- **Sem bordas arredondadas** (exceto onde já existente e aprovado)
+- **Sem bordas arredondadas**
 - **Sem hover** — apenas `:active` com `transform: scale(0.95)`
 
 ### Cards de Produto (Polaroid)
 - Fundo branco, formato vertical
-- Foto quadrada no topo com badge de localização sobreposto no canto superior esquerdo
+- Foto real do produto (Cloudinary) ou emoji 📦 como fallback
+- Badge de localização sobreposto no canto superior esquerdo da foto
 - Badge: fundo `#1A1A1A`, texto branco, fonte Poppins bold
 - Nome em Shrikhand abaixo da foto
 - Preço em `#C8102E` abaixo do nome
@@ -49,9 +56,9 @@ A paleta é restrita a 4 cores. **Rosa é expressamente proibido.**
 - Botão `✕` usa vermelho escuro (`#8B0000`) — ação destrutiva
 - Botão `+` trava visualmente (opacity 0.3) ao atingir limite de estoque
 
-### Header
+### Header (Frontend)
 - Fundo `#C8102E`, borda inferior `4px solid #1A1A1A`
-- Logo SVG + texto "Cherry Bomb" + "— HANDMADE —" em linha horizontal
+- Logo SVG (branca) + texto "Cherry Bomb" + "— HANDMADE —" em linha horizontal
 
 ### Footer (Sacola Fixa)
 - Fundo branco, borda superior `4px solid #1A1A1A`
@@ -67,7 +74,7 @@ A paleta é restrita a 4 cores. **Rosa é expressamente proibido.**
 ### Tela de Pagamento
 - Fundo `#C8102E` fullscreen
 - Título "Quase lá!" em Shrikhand branco
-- Card branco central com QR Code real, valor, código Pix e botão copiar
+- Card branco central com QR Code real, valor, código Pix e botão copiar preto
 - Status "⏳ Aguardando confirmação..." em fundo amarelo claro
 
 ### Tela de Sucesso
@@ -78,14 +85,22 @@ A paleta é restrita a 4 cores. **Rosa é expressamente proibido.**
 - Logo SVG no rodapé
 - Botão "Fazer novo pedido" vermelho escuro
 
+### Painel Admin
+- Tela de login: fundo vermelho cereja, card branco central, logo-red.svg
+- Header: fundo vermelho cereja, logo + "Admin" + botão "Sair" vermelho escuro
+- Lista de produtos: cards com foto, badge de posição, nome, preço, estoque e botão "Editar"
+- Modal de edição: preview de foto, campos de nome/preço/estoque, input file customizado
+- Botão atualizar: ícone SVG de refresh sem emoji
+
 ---
 
-## 5. Fluxo de Telas (Mobile)
+## 6. Fluxo de Telas (Mobile — Frontend Cliente)
 
 ### Tela 1: Vitrine (Home)
 - Header com logo + "Cherry Bomb" + "— HANDMADE —"
 - Grid de **4 colunas × 5 linhas (A1→E4)** renderizado dinamicamente via API
-- Items esgotados aparecem com opacity 0.45 e grayscale 60%, pointer-events none
+- Fotos reais dos produtos via Cloudinary, fallback 📦
+- Items esgotados: opacity 0.45, grayscale 60%, pointer-events none
 - Footer fixo com subtotal dinâmico e botão Sacola
 
 ### Tela 2: Bottom Sheet — Sacola
@@ -106,7 +121,7 @@ A paleta é restrita a 4 cores. **Rosa é expressamente proibido.**
 
 ---
 
-## 6. Lógica de Negócio (Frontend)
+## 7. Lógica de Negócio (Frontend)
 - Cards renderizados dinamicamente via `GET /produtos`
 - Carrinho gerenciado em memória com `data-id` por card
 - Subtotal atualizado em tempo real a cada interação
