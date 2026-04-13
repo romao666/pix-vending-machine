@@ -1,0 +1,5 @@
+fastapi
+uvicorn[standard]
+mercadopago
+python-dotenv
+pydantic
