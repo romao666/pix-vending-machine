@@ -1,23 +1,23 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from decimal import Decimal, ROUND_HALF_UP
 import mercadopago
+import json
 from app.core.config import settings
+from app.core.database import get_connection
 
 router = APIRouter()
 sdk = mercadopago.SDK(settings.mp_token)
-
-# Banco temporário em memória (Fase 2 — vira SQLite na Fase 4)
-db_pagamentos = {}
 
 
 # ─────────────────────────────────────────
 # MODELOS
 # ─────────────────────────────────────────
 class ItemCarrinho(BaseModel):
-    id: str        # ex: "A1"
-    name: str      # ex: "Colar"
-    price: float   # ex: 15.00
-    qty: int       # ex: 2
+    id: str
+    name: str
+    price: float
+    qty: int
 
 
 class PagamentoRequest(BaseModel):
@@ -32,15 +32,10 @@ async def gerar_pagamento(body: PagamentoRequest):
     if not body.itens:
         raise HTTPException(status_code=400, detail="Carrinho vazio.")
 
-    # Calcula total real
-    from decimal import Decimal, ROUND_HALF_UP
     total = sum(Decimal(str(item.price)) * item.qty for item in body.itens)
     total = float(total.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP))
 
-    # Descrição dinâmica (ex: "Colar x2, Pulseira x1")
-    descricao = ", ".join(
-        f"{item.name} x{item.qty}" for item in body.itens
-    )
+    descricao = ", ".join(f"{item.name} x{item.qty}" for item in body.itens)
 
     payment_data = {
         "transaction_amount": total,
@@ -56,7 +51,15 @@ async def gerar_pagamento(body: PagamentoRequest):
         raise HTTPException(status_code=400, detail="Erro ao gerar pagamento no Mercado Pago.")
 
     p_id = str(payment["id"])
-    db_pagamentos[p_id] = "pending"
+
+    # Salva no banco
+    conn = get_connection()
+    conn.execute(
+        "INSERT INTO pagamentos (id, status, itens, total) VALUES (?, ?, ?, ?)",
+        (p_id, "pending", json.dumps([i.dict() for i in body.itens]), total)
+    )
+    conn.commit()
+    conn.close()
 
     return {
         "id": p_id,
@@ -71,4 +74,38 @@ async def gerar_pagamento(body: PagamentoRequest):
 # ─────────────────────────────────────────
 @router.get("/status/{payment_id}")
 async def verificar_status(payment_id: str):
-    return {"status": db_pagamentos.get(payment_id, "not_found")}
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT status FROM pagamentos WHERE id = ?", (payment_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return {"status": "not_found"}
+    return {"status": row["status"]}
+
+
+# ─────────────────────────────────────────
+# Função auxiliar usada pelo webhook
+# ─────────────────────────────────────────
+def aprovar_pagamento(p_id: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Atualiza status do pagamento
+    conn.execute("UPDATE pagamentos SET status = 'approved' WHERE id = ?", (p_id,))
+
+    # Busca os itens do pagamento
+    cursor.execute("SELECT itens FROM pagamentos WHERE id = ?", (p_id,))
+    row = cursor.fetchone()
+
+    if row:
+        itens = json.loads(row["itens"])
+        # Subtrai estoque de cada item
+        for item in itens:
+            conn.execute(
+                "UPDATE produtos SET stock = MAX(0, stock - ?) WHERE id = ?",
+                (item["qty"], item["id"])
+            )
+
+    conn.commit()
+    conn.close()

@@ -1,13 +1,26 @@
-from fastapi import APIRouter
-from pathlib import Path
-import json
+from fastapi import APIRouter, HTTPException
+from app.core.database import get_connection
 
 router = APIRouter()
 
-DATA_PATH = Path(__file__).parent.parent / "data" / "products.json"
 
 @router.get("/produtos")
 def listar_produtos():
-    with open(DATA_PATH, "r", encoding="utf-8") as f:
-        produtos = json.load(f)
-    return produtos
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, price, stock, image_url FROM produtos ORDER BY id")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+
+@router.get("/produtos/{produto_id}")
+def get_produto(produto_id: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name, price, stock, image_url FROM produtos WHERE id = ?", (produto_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Produto não encontrado.")
+    return dict(row)
