@@ -114,10 +114,13 @@
          HEADER
     ════════════════════════════════════════ -->
     <header class="bg-cereja py-4 px-4 border-b-4 border-brutalista">
-        <div class="max-w-md mx-auto flex flex-col items-center">
+        <div class="max-w-md mx-auto flex items-center gap-3">
             <!-- Logo SVG -->
-            <img src="logo.svg" alt="Cherry Bomb Handmade" class="h-14 w-14 mb-1">
-            <p class="font-display text-white text-xs tracking-widest">— HANDMADE —</p>
+            <img src="logo.svg" alt="Cherry Bomb Handmade" class="h-14 w-14 flex-shrink-0">
+            <div class="flex flex-col">
+                <h1 class="font-display text-3xl text-white leading-tight">Cherry Bomb</h1>
+                <p class="font-display text-white text-xs tracking-widest">— HANDMADE —</p>
+            </div>
         </div>
     </header>
 
@@ -165,10 +168,16 @@
         <!-- Handle + Header -->
         <div class="border-b-2 border-brutalista px-4 py-3 flex items-center justify-between">
             <h2 class="font-display text-2xl text-brutalista">Sua Sacola</h2>
-            <button id="closeCartBtn"
-                class="btn-tap w-9 h-9 border-2 border-brutalista bg-white font-bold text-brutalista flex items-center justify-center">
-                ✕
-            </button>
+            <div class="flex items-center gap-2">
+                <button id="clearCartBtn"
+                    class="btn-tap bg-escuro text-white font-body font-bold text-xs px-3 py-2 border-2 border-brutalista">
+                    Limpar
+                </button>
+                <button id="closeCartBtn"
+                    class="btn-tap w-9 h-9 border-2 border-brutalista bg-white font-bold text-brutalista flex items-center justify-center">
+                    ✕
+                </button>
+            </div>
         </div>
 
         <!-- Lista de itens (dinâmica) -->
@@ -279,30 +288,31 @@
     ════════════════════════════════════════ -->
     <script>
     // ─────────────────────────────────────────
-    // PRODUTOS (fictícios — Fase 2 virá da API)
+    // CONFIGURAÇÃO DA API
     // ─────────────────────────────────────────
-    const PRODUCTS = [
-        { id: 'A1', name: 'Colar',    price: 15.00, stock: 5 },
-        { id: 'A2', name: 'Pulseira', price: 12.00, stock: 3 },
-        { id: 'A3', name: 'Brinco',   price: 10.00, stock: 0 },
-        { id: 'A4', name: 'Chaveiro', price: 14.00, stock: 4 },
-        { id: 'B1', name: 'Presilha', price:  8.50, stock: 6 },
-        { id: 'B2', name: 'Anel',     price: 11.00, stock: 2 },
-        { id: 'B3', name: 'Colar',    price: 16.00, stock: 4 },
-        { id: 'B4', name: 'Brinco',   price:  9.50, stock: 0 },
-        { id: 'C1', name: 'Pulseira', price: 13.00, stock: 5 },
-        { id: 'C2', name: 'Chaveiro', price: 17.50, stock: 3 },
-        { id: 'C3', name: 'Presilha', price:  6.00, stock: 7 },
-        { id: 'C4', name: 'Anel',     price: 19.00, stock: 1 },
-        { id: 'D1', name: 'Colar',    price: 18.50, stock: 3 },
-        { id: 'D2', name: 'Brinco',   price:  7.50, stock: 0 },
-        { id: 'D3', name: 'Pulseira', price: 21.00, stock: 2 },
-        { id: 'D4', name: 'Chaveiro', price: 23.00, stock: 4 },
-        { id: 'E1', name: 'Presilha', price:  5.50, stock: 8 },
-        { id: 'E2', name: 'Anel',     price: 20.50, stock: 2 },
-        { id: 'E3', name: 'Colar',    price: 24.50, stock: 3 },
-        { id: 'E4', name: 'Brinco',   price: 12.50, stock: 0 },
-    ];
+    const API_URL = 'http://localhost:8000';
+
+    // ─────────────────────────────────────────
+    // PRODUTOS (carregados da API)
+    // ─────────────────────────────────────────
+    let PRODUCTS = [];
+
+    async function carregarProdutos() {
+        try {
+            const res = await fetch(`${API_URL}/produtos`);
+            if (!res.ok) throw new Error('Erro ao carregar produtos.');
+            PRODUCTS = await res.json();
+            renderGrid();
+            updateFooter();
+        } catch (err) {
+            console.error(err);
+            document.getElementById('productGrid').innerHTML = `
+                <div class="col-span-4 text-center py-12">
+                    <p class="font-body font-bold text-brutalista text-sm">⚠️ Erro ao carregar produtos.<br>Verifique a conexão.</p>
+                </div>
+            `;
+        }
+    }
 
     // ─────────────────────────────────────────
     // ESTADO DO CARRINHO
@@ -345,11 +355,11 @@
             card.dataset.id = product.id;
 
             card.innerHTML = `
-                <!-- Foto placeholder -->
-                <div class="bg-gray-100 border-2 border-brutalista w-full aspect-square mb-2 flex items-center justify-center text-xl">📦</div>
-
-                <!-- Badge -->
-                <span class="bg-brutalista text-white font-body font-bold text-xs px-1.5 py-0.5 mb-1 w-fit">${product.id}</span>
+                <!-- Foto + Badge sobrepostos -->
+                <div class="relative w-full aspect-square mb-2">
+                    <div class="bg-gray-100 border-2 border-brutalista w-full h-full flex items-center justify-center text-xl">📦</div>
+                    <span class="absolute top-0 left-0 bg-brutalista text-white font-body font-bold text-xs px-1.5 py-0.5">${product.id}</span>
+                </div>
 
                 <!-- Nome -->
                 <p class="font-display text-xs text-brutalista leading-tight mb-0.5">${product.name}</p>
@@ -432,6 +442,9 @@
                     updateFooter();
                     updateCartSheet();
                 }
+                // Trava o botão visualmente se atingiu o limite
+                plusBtn.style.opacity = cart[id].qty >= product.stock ? '0.3' : '1';
+                plusBtn.style.pointerEvents = cart[id].qty >= product.stock ? 'none' : 'auto';
             });
         });
     }
@@ -529,6 +542,21 @@
     // EVENT LISTENERS GLOBAIS
     // ─────────────────────────────────────────
     document.getElementById('checkoutBtn').addEventListener('click', openCart);
+    document.getElementById('clearCartBtn').addEventListener('click', () => {
+        Object.keys(cart).forEach(id => delete cart[id]);
+        document.querySelectorAll('[data-id]').forEach(card => {
+            const addBtn      = card.querySelector('.add-btn');
+            const qtySelector = card.querySelector('.qty-selector');
+            const qtyValue    = card.querySelector('.qty-value');
+            if (addBtn && qtySelector) {
+                addBtn.classList.remove('hidden');
+                qtySelector.classList.remove('visible');
+                if (qtyValue) qtyValue.textContent = '1';
+            }
+        });
+        updateFooter();
+        updateCartSheet();
+    });
     document.getElementById('closeCartBtn').addEventListener('click', closeCart);
     document.getElementById('cartBackdrop').addEventListener('click', closeCart);
     document.getElementById('continueShoppingBtn').addEventListener('click', closeCart);
@@ -539,8 +567,7 @@
     // ─────────────────────────────────────────
     // INIT
     // ─────────────────────────────────────────
-    renderGrid();
-    updateFooter();
+    carregarProdutos();
     </script>
 
 </body>
