@@ -164,10 +164,10 @@ Acessível em `/admin.html` — protegido por senha via header `x-admin-password
 | Componente | Modelo | Quantidade | Função |
 |-----------|--------|-----------|--------|
 | Microcontrolador | ESP32 WROOM-32 DevKit (38 pinos) | 1 | Cérebro do hardware — WiFi + controle dos motores |
-| Motor | Motor TT DC 3-6V, 90RPM@3V, 1:48 | 20 (4 no protótipo) | Girar as molas físicas |
-| Driver de motor | TB6612FNG Duplo Ponte H | 10 (2 no protótipo) | Controlar direção e velocidade dos motores |
+| Motor | Motor TT DC 3-6V, 90RPM@3V, 1:48 | 20 | Girar as molas físicas |
+| Driver de motor | TB6612FNG Duplo Ponte H | 10 | Controlar direção e velocidade dos motores |
 | Protoboard | 830 pontos | 1 | Prototipagem sem solda |
-| Fonte de alimentação | 5V 2A (protótipo) / 5V 10A (produção) | 1 | Alimentar ESP32 e motores |
+| Fonte de alimentação | 5V 10A | 1 | Alimentar ESP32 e motores |
 
 ### 4.2. Protocolo de Comunicação (MQTT)
 
