@@ -12,13 +12,13 @@ Uma máquina de vendas automática para artesanatos, operada via Pix, instalada 
 
 ## URLs de Produção
 - **Backend:** https://hearty-tranquility-production.up.railway.app
-- **Frontend:** https://romao666.github.io/pix-vending-machine
-- **Admin:** frontend/assets/admin.html (aberto localmente)
+- **Frontend:** https://joaoromaodev.github.io/pix-vending-machine/
+- **Admin:** https://joaoromaodev.github.io/pix-vending-machine/admin.html
 
 ## Credenciais e Variáveis de Ambiente (Railway)
 - `MP_ACCESS_TOKEN_PRODUCAO` — token Mercado Pago produção
 - `MP_ACCESS_TOKEN_TESTE` — token Mercado Pago teste
-- `ADMIN_PASSWORD` — senha do painel admin (`#CherryBomb6661`)
+- `ADMIN_PASSWORD` — senha do painel admin (definida apenas na env var do Railway; nunca versionar o valor)
 - `CLOUDINARY_CLOUD_NAME` — cloud name do Cloudinary
 - `CLOUDINARY_API_KEY` — API key do Cloudinary
 - `CLOUDINARY_API_SECRET` — API secret do Cloudinary
@@ -62,4 +62,3 @@ Uma máquina de vendas automática para artesanatos, operada via Pix, instalada 
 ### 📋 Backlog
 - Domínio personalizado configurado no Railway
 - Proteção da rota /admin por URL secreta
-- Hospedar admin.html no GitHub Pages ou Railway
