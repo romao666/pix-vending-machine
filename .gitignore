@@ -14,3 +14,6 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+# Portfolio — material de conferencia e apresentacao, nao faz parte do produto.
+# Contem notas de seguranca sobre este proprio sistema; manter fora do repo publico.
+pacote-portfolio/
