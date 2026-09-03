@@ -122,7 +122,8 @@ uvicorn app.main:app --reload
 ```env
 MP_ACCESS_TOKEN_PRODUCAO=seu_token_aqui
 MP_ACCESS_TOKEN_TESTE=seu_token_teste_aqui
-ADMIN_PASSWORD=sua_senha_aqui
+ADMIN_PASSWORD=sua_senha_aqui   # obrigatoria: sem ela o /admin responde 503
+ALLOWED_ORIGINS=https://sua-vitrine   # origens da vitrine, separadas por virgula
 CLOUDINARY_CLOUD_NAME=seu_cloud_name
 CLOUDINARY_API_KEY=sua_api_key
 CLOUDINARY_API_SECRET=seu_api_secret

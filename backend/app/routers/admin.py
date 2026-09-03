@@ -4,6 +4,7 @@ from app.core.database import get_connection
 import cloudinary
 import cloudinary.uploader
 import os
+import secrets
 
 router = APIRouter(prefix="/admin")
 
@@ -13,11 +14,22 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET"),
 )
 
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "cherrybomb123")
+# Sem senha padrao. O fallback anterior estava em texto aberto neste
+# repositorio publico e no historico dele, entao qualquer redeploy que
+# perdesse a env var abria o painel com uma senha que todo mundo conhece.
+# Faltando a variavel, o painel fica indisponivel — falha fechado.
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 
 def verificar_senha(x_admin_password: str = Header(...)):
-    if x_admin_password != ADMIN_PASSWORD:
+    if not ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=503,
+            detail="Painel administrativo indisponivel: ADMIN_PASSWORD nao configurada.",
+        )
+    # compare_digest em vez de != : o tempo de resposta deixa de vazar
+    # quantos caracteres do inicio da senha o cliente acertou.
+    if not secrets.compare_digest(x_admin_password, ADMIN_PASSWORD):
         raise HTTPException(status_code=401, detail="Senha incorreta.")
 
 

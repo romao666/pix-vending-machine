@@ -108,7 +108,8 @@ CREATE TABLE pagamentos (
 |----------|-----------|
 | `MP_ACCESS_TOKEN_PRODUCAO` | Token de produção Mercado Pago |
 | `MP_ACCESS_TOKEN_TESTE` | Token de teste Mercado Pago |
-| `ADMIN_PASSWORD` | Senha do painel administrativo |
+| `ADMIN_PASSWORD` | Senha do painel administrativo. **Obrigatoria** — sem ela o `/admin` responde 503 em vez de subir com uma senha padrao |
+| `ALLOWED_ORIGINS` | Origens permitidas no CORS, separadas por virgula. Sem ela qualquer origem le a vitrine, mas o header `x-admin-password` nao passa entre origens |
 | `CLOUDINARY_CLOUD_NAME` | Cloud name do Cloudinary |
 | `CLOUDINARY_API_KEY` | API Key do Cloudinary |
 | `CLOUDINARY_API_SECRET` | API Secret do Cloudinary |
